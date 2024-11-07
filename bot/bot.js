@@ -46,7 +46,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === 'setchannel') {
         if (interaction.member.permissions.has("Administrator")) {
             const channel = interaction.options.getChannel('channel');
-            fs.writeFileSync(CHANNEL_ID, channel.id);
+            fs.writeFileSync('.env', `CHANNEL_ID=${channel.id}\n`, { flag: 'a' });
             await interaction.reply(`Le canal pour l'envoi du menu a été défini sur : ${channel.toString()}`);
             console.log(`Canal défini : ${channel.toString()}`);
         } else {
@@ -55,21 +55,9 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     if (interaction.commandName === 'menu') {
-        await interaction.deferReply();
-        const menu = await fetchMenu();
-        console.log(menu);
-        const date = new Date();
-        const embed = new EmbedBuilder()
-            .setTitle(`Menu du RU Aubépin du ${date.toLocaleDateString()}`)
-            .setDescription(menu)
-            .setColor(0xff0000)
-            .setFooter({ text: 'Source : Crous Nantes' })
-            .setTimestamp();
-        await interaction.editReply({ embeds: [embed] });
+        await sendMenu();
     }
 });
-
-
 
 async function sendDailyMenu() {
     const now = new Date();
@@ -79,19 +67,32 @@ async function sendDailyMenu() {
 
     setTimeout(async () => {
         try {
-            const channelId = fs.readFileSync(CHANNEL_ID, 'utf8').trim();
-            const channel = await client.channels.fetch(channelId);
-            if (channel) {
-                const menu = await fetchMenu();
-                await channel.send(`**Menu du RU Aubépin aujourd'hui :**\n\n${menu}`);
-            } else {
-                console.error("Erreur : le canal spécifié est introuvable.");
-            }
+            await sendMenu();
         } catch (error) {
             console.error("Erreur lors de l'envoi du menu quotidien :", error);
         }
         setInterval(sendDailyMenu, 24 * 60 * 60 * 1000); // Relancer l'envoi quotidien toutes les 24 heures
     }, nextRun - now);
+}
+
+async function sendMenu() {
+    const channel = await client.channels.fetch(CHANNEL_ID);
+    if (channel) {
+        await interaction.deferReply();
+        const menu = await fetchMenu();
+        console.log(menu);
+        const date = new Date();
+        const embed = new EmbedBuilder()
+            .setTitle(`Menu du RU Aubépin du ${date.toLocaleDateString()}`)
+            .setDescription(menu)
+            .setColor(0x00ff00)
+            .setFooter({ text: 'Source : Crous Nantes' })
+            .setImage('https://cellar-c2.services.clever-cloud.com/ma-cantine-egalim-prod/media/0319f531-f193-4eff-b194-2217e6099e2d.jpeg')
+            .setTimestamp();
+        await interaction.editReply({ embeds: [embed] });
+    } else {
+        console.error("Erreur : le canal spécifié est introuvable.");
+    }
 }
 
 client.login(TOKEN);
