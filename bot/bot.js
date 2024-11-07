@@ -1,15 +1,12 @@
-import { Client, GatewayIntentBits, Events, REST, Routes } from 'discord.js';
-import fetch from 'node-fetch';
+import { Client, GatewayIntentBits, Events, EmbedBuilder } from 'discord.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import { createRequire } from 'module';
-import { EmbedBuilder } from 'discord.js';
 import { fetchMenu } from './fetchMenu.js';
-const require = createRequire(import.meta.url);
 
 dotenv.config();
+
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
-const CHANNEL_ID = process.env.CHANNEL_ID;
+const CHANNELS_FILE = './files/channels.json';
 
 const client = new Client({
     intents: [
@@ -18,6 +15,20 @@ const client = new Client({
         GatewayIntentBits.MessageContent
     ]
 });
+
+// Charger les canaux depuis le fichier JSON
+function loadChannels() {
+    if (fs.existsSync(CHANNELS_FILE)) {
+        return JSON.parse(fs.readFileSync(CHANNELS_FILE));
+    } else {
+        return {}; // Retourne un objet vide si le fichier n'existe pas
+    }
+}
+
+// Sauvegarder les canaux dans le fichier JSON
+function saveChannels(channels) {
+    fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2));
+}
 
 client.once(Events.ClientReady, async () => {
     console.log(`Connecté en tant que ${client.user.tag}`);
@@ -38,24 +49,33 @@ client.once(Events.ClientReady, async () => {
     } catch (error) {
         console.error('Erreur lors de la synchronisation des commandes :', error);
     }
+
+    sendDailyMenu();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
+    const channels = loadChannels();  // Charger les canaux stockés
+
     if (interaction.commandName === 'setchannel') {
         if (interaction.member.permissions.has("Administrator")) {
             const channel = interaction.options.getChannel('channel');
-            fs.writeFileSync('.env', `CHANNEL_ID=${channel.id}\n`, { flag: 'a' });
+            const guildId = interaction.guild.id; // ID du serveur
+
+            channels[guildId] = channel.id;  // Associer le canal au serveur
+
+            saveChannels(channels);  // Sauvegarder les changements
+
             await interaction.reply(`Le canal pour l'envoi du menu a été défini sur : ${channel.toString()}`);
-            console.log(`Canal défini : ${channel.toString()}`);
+            console.log(`Canal défini pour ${interaction.guild.name} : ${channel.id}`);
         } else {
             await interaction.reply({ content: "Vous n'avez pas la permission de définir le canal.", ephemeral: true });
         }
     }
 
     if (interaction.commandName === 'menu') {
-        await sendMenu();
+        await sendMenu(interaction);
     }
 });
 
@@ -71,17 +91,26 @@ async function sendDailyMenu() {
         } catch (error) {
             console.error("Erreur lors de l'envoi du menu quotidien :", error);
         }
-        setInterval(sendDailyMenu, 24 * 60 * 60 * 1000); // Relancer l'envoi quotidien toutes les 24 heures
+        setInterval(sendDailyMenu, 24 * 60 * 60 * 1000);  // Relancer l'envoi quotidien toutes les 24 heures
     }, nextRun - now);
 }
 
-async function sendMenu() {
-    const channel = await client.channels.fetch(CHANNEL_ID);
+async function sendMenu(interaction = null) {
+    const channels = loadChannels();  // Charger les canaux stockés
+    const guildId = interaction ? interaction.guild.id : null;
+
+    // Si un canal est défini pour ce serveur
+    const channelId = guildId ? channels[guildId] : null;
+    if (!channelId) {
+        console.error("Erreur : aucun canal défini pour ce serveur.");
+        return;
+    }
+
+    const channel = await client.channels.fetch(channelId);
     if (channel) {
-        await interaction.deferReply();
         const menu = await fetchMenu();
-        console.log(menu);
         const date = new Date();
+
         const embed = new EmbedBuilder()
             .setTitle(`Menu du RU Aubépin du ${date.toLocaleDateString()}`)
             .setDescription(menu)
@@ -89,7 +118,13 @@ async function sendMenu() {
             .setFooter({ text: 'Source : Crous Nantes' })
             .setImage('https://cellar-c2.services.clever-cloud.com/ma-cantine-egalim-prod/media/0319f531-f193-4eff-b194-2217e6099e2d.jpeg')
             .setTimestamp();
-        await interaction.editReply({ embeds: [embed] });
+
+        if (interaction) {
+            await interaction.deferReply();  // Allonge le délai d'expiration
+            await interaction.editReply({ embeds: [embed] });
+        } else {
+            await channel.send({ embeds: [embed] });
+        }
     } else {
         console.error("Erreur : le canal spécifié est introuvable.");
     }
