@@ -6,7 +6,8 @@ import { fetchMenu } from './fetchMenu.js';
 dotenv.config();
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
-const CHANNELS_FILE = './files/channels.json';
+const CHANNELS_FILE = './bot/files/channels.json';
+const MENUS_FILE = './bot/files/menu.json';
 
 const client = new Client({
     intents: [
@@ -16,18 +17,57 @@ const client = new Client({
     ]
 });
 
-// Charger les canaux depuis le fichier JSON
+
 function loadChannels() {
     if (fs.existsSync(CHANNELS_FILE)) {
-        return JSON.parse(fs.readFileSync(CHANNELS_FILE));
+        const fileContent = fs.readFileSync(CHANNELS_FILE, 'utf-8');
+        if (fileContent.trim() === '') {
+            return {};
+        }
+        try {
+            return JSON.parse(fileContent);
+        } catch (error) {
+            console.error('Erreur de parsing dans le fichier channels.json', error);
+            return {};
+        }
     } else {
-        return {}; // Retourne un objet vide si le fichier n'existe pas
+        return {};
     }
 }
 
-// Sauvegarder les canaux dans le fichier JSON
+function loadMenus() {
+    if (fs.existsSync(MENUS_FILE)) {
+        const fileContent = fs.readFileSync(MENUS_FILE, 'utf-8');
+        if (fileContent.trim() === '') {
+            return {};
+        }
+        try {
+            return JSON.parse(fileContent);
+        } catch (error) {
+            console.error('Erreur de parsing dans le fichier menu.json', error);
+            return {};
+        }
+    } else {
+        return {};
+    }
+}
+
 function saveChannels(channels) {
-    fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2));
+    try {
+        fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2));
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde des canaux dans channels.json', error);
+    }
+}
+
+function saveMenu(date, menu) {
+    try {
+        const menus = loadMenus();
+        menus[date] = menu;
+        fs.writeFileSync(MENUS_FILE, JSON.stringify(menus, null, 2));
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde du menu dans menu.json', error);
+    }
 }
 
 client.once(Events.ClientReady, async () => {
@@ -56,16 +96,16 @@ client.once(Events.ClientReady, async () => {
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
-    const channels = loadChannels();  // Charger les canaux stockés
+    const channels = loadChannels();
 
     if (interaction.commandName === 'setchannel') {
         if (interaction.member.permissions.has("Administrator")) {
             const channel = interaction.options.getChannel('channel');
-            const guildId = interaction.guild.id; // ID du serveur
+            const guildId = interaction.guild.id;
 
-            channels[guildId] = channel.id;  // Associer le canal au serveur
+            channels[guildId] = channel.id;
 
-            saveChannels(channels);  // Sauvegarder les changements
+            saveChannels(channels);
 
             await interaction.reply(`Le canal pour l'envoi du menu a été défini sur : ${channel.toString()}`);
             console.log(`Canal défini pour ${interaction.guild.name} : ${channel.id}`);
@@ -91,15 +131,29 @@ async function sendDailyMenu() {
         } catch (error) {
             console.error("Erreur lors de l'envoi du menu quotidien :", error);
         }
-        setInterval(sendDailyMenu, 24 * 60 * 60 * 1000);  // Relancer l'envoi quotidien toutes les 24 heures
+        setInterval(sendDailyMenu, 24 * 60 * 60 * 1000);
     }, nextRun - now);
 }
 
 async function sendMenu(interaction = null) {
-    const channels = loadChannels();  // Charger les canaux stockés
+    const date = new Date().toLocaleDateString();
+    const menus = loadMenus();
+
+    if (menus[date]) {
+        console.log('Menu déjà enregistré pour aujourd\'hui.');
+        sendMenuToChannel(menus[date], interaction);
+    } else {
+        console.log('Aucun menu trouvé pour aujourd\'hui, récupération...');
+        const menu = await fetchMenu();
+        saveMenu(date, menu);
+        sendMenuToChannel(menu, interaction);
+    }
+}
+
+async function sendMenuToChannel(menu, interaction = null) {
+    const channels = loadChannels();
     const guildId = interaction ? interaction.guild.id : null;
 
-    // Si un canal est défini pour ce serveur
     const channelId = guildId ? channels[guildId] : null;
     if (!channelId) {
         console.error("Erreur : aucun canal défini pour ce serveur.");
@@ -108,11 +162,8 @@ async function sendMenu(interaction = null) {
 
     const channel = await client.channels.fetch(channelId);
     if (channel) {
-        const menu = await fetchMenu();
-        const date = new Date();
-
         const embed = new EmbedBuilder()
-            .setTitle(`Menu du RU Aubépin du ${date.toLocaleDateString()}`)
+            .setTitle(`Menu du RU Aubépin du ${new Date().toLocaleDateString()}`)
             .setDescription(menu)
             .setColor(0x00ff00)
             .setFooter({ text: 'Source : Crous Nantes' })
@@ -120,7 +171,7 @@ async function sendMenu(interaction = null) {
             .setTimestamp();
 
         if (interaction) {
-            await interaction.deferReply();  // Allonge le délai d'expiration
+            await interaction.deferReply();
             await interaction.editReply({ embeds: [embed] });
         } else {
             await channel.send({ embeds: [embed] });
