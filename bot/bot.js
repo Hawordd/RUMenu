@@ -55,17 +55,21 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     if (interaction.commandName === 'menu') {
+        await interaction.deferReply();
         const menu = await fetchMenu();
         console.log(menu);
         const date = new Date();
         const embed = new EmbedBuilder()
             .setTitle(`Menu du RU Aubépin du ${date.toLocaleDateString()}`)
             .setDescription(menu)
-            .setColor(0x00ff00)
-            .setFooter({ text: 'Source : Crous Nantes' });
-        await interaction.reply({ embeds: [embed] });
+            .setColor(0xff0000)
+            .setFooter({ text: 'Source : Crous Nantes' })
+            .setTimestamp();
+        await interaction.editReply({ embeds: [embed] });
     }
 });
+
+
 
 async function sendDailyMenu() {
     const now = new Date();

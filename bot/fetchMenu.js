@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import * as cheerio from 'cheerio';
+import { EmbedBuilder } from 'discord.js';
 
 export async function fetchMenu() {
     try {
@@ -30,13 +31,28 @@ export async function fetchMenu() {
     }
 }
 
-function formatMenu(menuText) {
-    let formattedMenu = menuText.replace(/<li>/g, '\n');
-    formattedMenu = formattedMenu.replace(/<ul>/g, '\n');
-    formattedMenu = formattedMenu.replace(/<\/?li>/g, '');
-    formattedMenu = formattedMenu.replace(/<\/?ul>/g, '');
+export function formatMenu(htmlContent) {
+    const $ = cheerio.load(htmlContent);
+
+    let formattedMenu = '';
+
+    // Parcourir uniquement les pôles principaux en sélectionnant les `li` qui contiennent une `ul`
+    $('li:has(ul)').each((index, element) => {
+        const poleName = $(element).contents().first().text().trim();  // Nom du pôle principal
+
+        // Récupère chaque plat dans la sous-liste `ul li`
+        const dishes = $(element).find('ul li').map((i, el) => $(el).text().trim()).get();
+
+        // Ajouter le pôle et ses plats formatés
+        formattedMenu += `**${poleName}**\n`;
+        dishes.forEach(dish => {
+            formattedMenu += `- ${dish}\n`;
+        });
+        formattedMenu += '\n';
+    });
 
     return formattedMenu;
 }
+
 
 
