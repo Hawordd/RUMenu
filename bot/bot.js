@@ -7,7 +7,7 @@ dotenv.config();
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CHANNELS_FILE = './bot/files/channels.json';
-const MENUS_FILE = './bot/files/menu.json';
+const MENU_FILE = './bot/files/menu.json';
 
 const client = new Client({
     intents: [
@@ -36,8 +36,8 @@ function loadChannels() {
 }
 
 function loadMenus() {
-    if (fs.existsSync(MENUS_FILE)) {
-        const fileContent = fs.readFileSync(MENUS_FILE, 'utf-8');
+    if (fs.existsSync(MENU_FILE)) {
+        const fileContent = fs.readFileSync(MENU_FILE, 'utf-8');
         if (fileContent.trim() === '') {
             return {};
         }
@@ -64,7 +64,7 @@ function saveMenu(date, menu) {
     try {
         const menus = loadMenus();
         menus[date] = menu;
-        fs.writeFileSync(MENUS_FILE, JSON.stringify(menus, null, 2));
+        fs.writeFileSync(MENU_FILE, JSON.stringify(menus, null, 2));
     } catch (error) {
         console.error('Erreur lors de la sauvegarde du menu dans menu.json', error);
     }

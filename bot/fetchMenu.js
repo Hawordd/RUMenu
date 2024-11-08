@@ -1,6 +1,5 @@
 import fetch from 'node-fetch';
 import * as cheerio from 'cheerio';
-import { EmbedBuilder } from 'discord.js';
 
 export async function fetchMenu() {
     try {
@@ -11,12 +10,11 @@ export async function fetchMenu() {
             const body = await response.text();
             const $ = cheerio.load(body);
 
-            // Récupération de la balise <ul class="meal_foodies">
             const menuSection = $('ul.meal_foodies');
 
             if (menuSection.length) {
-                const menuText = menuSection.html().trim(); // Extraire le texte de la balise
-                const formattedMenu = formatMenu(menuText); // Formatter le menu
+                const menuText = menuSection.html().trim();
+                const formattedMenu = formatMenu(menuText);
 
                 return formattedMenu;
             } else {
@@ -36,14 +34,11 @@ export function formatMenu(htmlContent) {
 
     let formattedMenu = '';
 
-    // Parcourir uniquement les pôles principaux en sélectionnant les `li` qui contiennent une `ul`
     $('li:has(ul)').each((index, element) => {
-        const poleName = $(element).contents().first().text().trim();  // Nom du pôle principal
+        const poleName = $(element).contents().first().text().trim();
 
-        // Récupère chaque plat dans la sous-liste `ul li`
         const dishes = $(element).find('ul li').map((i, el) => $(el).text().trim()).get();
 
-        // Ajouter le pôle et ses plats formatés
         formattedMenu += `**${poleName}**\n`;
         dishes.forEach(dish => {
             formattedMenu += `- ${dish}\n`;
