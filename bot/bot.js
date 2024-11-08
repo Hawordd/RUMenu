@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits, Events, EmbedBuilder } from 'discord.js';
 import dotenv from 'dotenv';
 import { sendMenu } from './commands/menu.js';
-import { loadChannels, saveChannels } from './commands/setchannel.js';
+import { loadChannels, setChannel } from './commands/setchannel.js';
 
 dotenv.config();
 
@@ -44,19 +44,7 @@ client.on(Events.InteractionCreate, async interaction => {
     const channels = loadChannels();
 
     if (interaction.commandName === 'setchannel') {
-        if (interaction.member.permissions.has("Administrator")) {
-            const channel = interaction.options.getChannel('channel');
-            const guildId = interaction.guild.id;
-
-            channels[guildId] = channel.id;
-
-            saveChannels(channels);
-
-            await interaction.reply(`Le canal pour l'envoi du menu a été défini sur : ${channel.toString()}`);
-            console.log(`Canal défini pour ${interaction.guild.name} : ${channel.id}`);
-        } else {
-            await interaction.reply({ content: "Vous n'avez pas la permission de définir le canal.", ephemeral: true });
-        }
+        await setChannel(interaction, channels);
     }
 
     if (interaction.commandName === 'menu') {
