@@ -1,6 +1,7 @@
 #Local files
 media/
 bot/files/
+ecosystem.config.cjs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
