@@ -18,6 +18,15 @@ export function setChannel(interaction, channels) {
     }
 }
 
+export function channelIntegration(interaction, channels) {
+    if (interaction.member.permissions.has("Administrator")) {
+
+        interaction.reply(`Fonction en cours d'implémentation`);
+    } else {
+        interaction.reply({ content: "Vous n'avez pas la permission de définir le canal.", ephemeral: true });
+    }
+}
+
 export function loadChannels() {
     if (fs.existsSync(CHANNELS_FILE)) {
         const fileContent = fs.readFileSync(CHANNELS_FILE, 'utf-8');

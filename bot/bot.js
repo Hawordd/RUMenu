@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits, Events, EmbedBuilder } from 'discord.js';
 import dotenv from 'dotenv';
 import { sendMenu } from './commands/menu.js';
-import { loadChannels, setChannel } from './commands/setchannel.js';
+import { loadChannels, setChannel, channelIntegration } from './commands/setchannel.js';
 
 dotenv.config();
 
@@ -44,7 +44,8 @@ client.on(Events.InteractionCreate, async interaction => {
     const channels = loadChannels();
 
     if (interaction.commandName === 'setchannel') {
-        await setChannel(interaction, channels);
+        await channelIntegration(interaction, channels);
+        //await setChannel(interaction, channels);
     }
 
     if (interaction.commandName === 'menu') {
