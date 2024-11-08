@@ -29,8 +29,16 @@ async function sendMenuToChannel(menu, interaction = null) {
         .setTimestamp();
 
     if (interaction) {
-        await interaction.deferReply();
-        await interaction.editReply({ embeds: [embed] });
+        try {
+            await interaction.deferReply();
+            await interaction.editReply({ embeds: [embed] });
+        } catch (error) {
+            if (error.code === 10062) {
+                console.error('Interaction inconnue ou expirée.');
+            } else {
+                console.error('Erreur lors de la réponse à l\'interaction :', error);
+            }
+        }
     } else {
         console.log("Aucune interaction fournie. Le menu ne sera pas envoyé.");
     }
