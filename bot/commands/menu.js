@@ -1,7 +1,5 @@
 import fs from 'fs';
 import { fetchMenu } from '../fetchMenu.js';
-import { loadChannels } from './setchannel.js';
-import { client } from '../bot.js';
 import { EmbedBuilder } from 'discord.js';
 
 const MENU_FILE = './bot/files/menu.json';
@@ -22,33 +20,19 @@ export async function sendMenu(interaction = null) {
 }
 
 async function sendMenuToChannel(menu, interaction = null) {
-    const channels = loadChannels();
-    const guildId = interaction ? interaction.guild.id : null;
+    const embed = new EmbedBuilder()
+        .setTitle(`Menu du RU Aubépin du ${new Date().toLocaleDateString()}`)
+        .setDescription(menu)
+        .setColor(0x00ff00)
+        .setFooter({ text: 'Source : Crous Nantes' })
+        .setImage('https://cellar-c2.services.clever-cloud.com/ma-cantine-egalim-prod/media/0319f531-f193-4eff-b194-2217e6099e2d.jpeg')
+        .setTimestamp();
 
-    const channelId = guildId ? channels[guildId] : null;
-    if (!channelId) {
-        console.error("Erreur : aucun canal défini pour ce serveur.");
-        return;
-    }
-
-    const channel = await client.channels.fetch(channelId);
-    if (channel) {
-        const embed = new EmbedBuilder()
-            .setTitle(`Menu du RU Aubépin du ${new Date().toLocaleDateString()}`)
-            .setDescription(menu)
-            .setColor(0x00ff00)
-            .setFooter({ text: 'Source : Crous Nantes' })
-            .setImage('https://cellar-c2.services.clever-cloud.com/ma-cantine-egalim-prod/media/0319f531-f193-4eff-b194-2217e6099e2d.jpeg')
-            .setTimestamp();
-
-        if (interaction) {
-            await interaction.deferReply();
-            await interaction.editReply({ embeds: [embed] });
-        } else {
-            await channel.send({ embeds: [embed] });
-        }
+    if (interaction) {
+        await interaction.deferReply();
+        await interaction.editReply({ embeds: [embed] });
     } else {
-        console.error("Erreur : le canal spécifié est introuvable.");
+        console.log("Aucune interaction fournie. Le menu ne sera pas envoyé.");
     }
 }
 

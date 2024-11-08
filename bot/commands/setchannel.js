@@ -5,8 +5,12 @@ const CHANNELS_FILE = './bot/files/channels.json';
 export function setChannel(interaction, channels) {
     if (interaction.member.permissions.has("Administrator")) {
         const channel = interaction.options.getChannel('channel');
-        const guildId = interaction.guild.id;
+        if (!channel) {
+            interaction.reply({ content: "Veuillez spécifier un canal valide.", ephemeral: true });
+            return;
+        }
 
+        const guildId = interaction.guild.id;
         channels[guildId] = channel.id;
 
         saveChannels(channels);
@@ -20,8 +24,12 @@ export function setChannel(interaction, channels) {
 
 export function channelIntegration(interaction, channels) {
     if (interaction.member.permissions.has("Administrator")) {
-
-        interaction.reply(`Fonction en cours d'implémentation`);
+        const guildId = interaction.guild.id;
+        if (guildId === '1169939146341625866') {
+            setChannel(interaction, channels);
+        } else {
+            interaction.reply({ content: "Fonction en cours d'implémentation", ephemeral: true });
+        }
     } else {
         interaction.reply({ content: "Vous n'avez pas la permission de définir le canal.", ephemeral: true });
     }
@@ -44,7 +52,7 @@ export function loadChannels() {
     }
 }
 
-export function saveChannels(channels) {
+function saveChannels(channels) {
     try {
         fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2));
     } catch (error) {

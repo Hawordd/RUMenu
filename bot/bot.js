@@ -22,7 +22,7 @@ client.once(Events.ClientReady, async () => {
         await client.application.commands.set([
             {
                 name: 'setchannel',
-                description: 'Définit le canal pour envoyer le menu quotidien',
+                description: 'EN DEVELOPPEMENT - Définit le canal pour envoyer le menu quotidien',
                 options: [{ name: 'channel', type: 7, description: 'Le canal à définir', required: true }]
             },
             {
@@ -56,7 +56,7 @@ client.on(Events.InteractionCreate, async interaction => {
 async function sendDailyMenu() {
     const now = new Date();
     const nextRun = new Date();
-    nextRun.setHours(9, 0, 0, 0);
+    nextRun.setHours(6, 0, 0, 0);
     if (now >= nextRun) nextRun.setDate(nextRun.getDate() + 1);
 
     setTimeout(async () => {
@@ -67,6 +67,7 @@ async function sendDailyMenu() {
         }
         setInterval(sendDailyMenu, 24 * 60 * 60 * 1000);
     }, nextRun - now);
+    console.log(`Prochain envoi du menu quotidien : ${nextRun.toLocaleString()}`);
 }
 
 client.login(TOKEN);
