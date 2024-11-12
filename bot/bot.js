@@ -1,19 +1,15 @@
-import { Client, GatewayIntentBits, Events, EmbedBuilder } from 'discord.js';
-import dotenv from 'dotenv';
+import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { sendMenu } from './commands/menu.js';
-import { loadChannels, setChannel, channelIntegration } from './commands/setchannel.js';
+import { loadChannels, channelIntegration } from './commands/setchannel.js';
+import cron from 'node-cron';
+import dotenv from 'dotenv';
+import { fetchMenu } from './fetchMenu.js';
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 dotenv.config();
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
-
-export const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
-    ]
-});
 
 client.once(Events.ClientReady, async () => {
     console.log(`Connecté en tant que ${client.user.tag}`);
@@ -35,6 +31,10 @@ client.once(Events.ClientReady, async () => {
         console.error('Erreur lors de la synchronisation des commandes :', error);
     }
 
+    cron.schedule('0 10 * * *', () => {
+        sendDailyMenu();
+    });
+
     sendDailyMenu();
 });
 
@@ -45,7 +45,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (interaction.commandName === 'setchannel') {
         await channelIntegration(interaction, channels);
-        //await setChannel(interaction, channels);
     }
 
     if (interaction.commandName === 'menu') {
@@ -54,20 +53,19 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 async function sendDailyMenu() {
-    const now = new Date();
-    const nextRun = new Date();
-    nextRun.setHours(6, 0, 0, 0);
-    if (now >= nextRun) nextRun.setDate(nextRun.getDate() + 1);
+    const channels = loadChannels();
+    const date = new Date().toLocaleDateString();
+    const menu = await fetchMenu();
 
-    setTimeout(async () => {
-        try {
-            await sendMenu();
-        } catch (error) {
-            console.error("Erreur lors de l'envoi du menu quotidien :", error);
+    for (const guildId in channels) {
+        const channelId = channels[guildId];
+        const channel = await client.channels.fetch(channelId);
+        if (channel) {
+            sendDailyMenu(menu, channel);
+        } else {
+            console.error(`Erreur : le canal ${channelId} pour la guilde ${guildId} est introuvable.`);
         }
-        setInterval(sendDailyMenu, 24 * 60 * 60 * 1000);
-    }, nextRun - now);
-    console.log(`Prochain envoi du menu quotidien : ${nextRun.toLocaleString()}`);
+    }
 }
 
 client.login(TOKEN);

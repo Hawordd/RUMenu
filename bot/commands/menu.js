@@ -1,8 +1,13 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { fetchMenu } from '../fetchMenu.js';
 import { EmbedBuilder } from 'discord.js';
 
-const MENU_FILE = './bot/files/menu.json';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const MENU_FILE = path.resolve(__dirname, '../files/menu.json');
 
 export async function sendMenu(interaction = null) {
     const date = new Date().toLocaleDateString();
@@ -16,6 +21,20 @@ export async function sendMenu(interaction = null) {
         const menu = await fetchMenu();
         saveMenu(date, menu);
         sendMenuToChannel(menu, interaction);
+    }
+}
+
+export async function sendDailyMenu(menu, channel) {
+    const date = new Date().toLocaleDateString();
+    const menus = loadMenus();
+
+    if (menus[date]) {
+        console.log('Menu déjà enregistré pour aujourd\'hui.');
+        sendMenuToChannel(menus[date], channel);
+    } else {
+        console.log('Aucun menu trouvé pour aujourd\'hui, envoi du menu fourni...');
+        saveMenu(date, menu);
+        sendMenuToChannel(menu, channel);
     }
 }
 
@@ -48,7 +67,14 @@ function saveMenu(date, menu) {
     try {
         const menus = loadMenus();
         menus[date] = menu;
+
+        const dir = path.dirname(MENU_FILE);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
         fs.writeFileSync(MENU_FILE, JSON.stringify(menus, null, 2));
+        console.log('Menu sauvegardé avec succès.');
     } catch (error) {
         console.error('Erreur lors de la sauvegarde du menu dans menu.json', error);
     }

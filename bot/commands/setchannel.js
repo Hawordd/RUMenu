@@ -1,6 +1,11 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const CHANNELS_FILE = './bot/files/channels.json';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const CHANNELS_FILE = path.resolve(__dirname, '../files/channels.json');
 
 export function setChannel(interaction, channels) {
     try {
@@ -31,20 +36,17 @@ export function setChannel(interaction, channels) {
     }
 }
 
-export function channelIntegration(interaction, channels) {
+function saveChannels(channels) {
     try {
-        if (interaction.member.permissions.has("Administrator")) {
-            const guildId = interaction.guild.id;
-            if (guildId === '1169939146341625866') {
-                setChannel(interaction, channels);
-            } else {
-                interaction.reply({ content: "Fonction en cours d'implémentation", ephemeral: true });
-            }
-        } else {
-            interaction.reply({ content: "Vous n'avez pas la permission de définir le canal.", ephemeral: true });
+        const dir = path.dirname(CHANNELS_FILE);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
         }
+
+        fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2));
+        console.log('Canaux sauvegardés avec succès.');
     } catch (error) {
-        console.error("Erreur dans channelIntegration:", error);
+        console.error('Erreur lors de la sauvegarde des canaux dans channels.json', error);
     }
 }
 
@@ -65,15 +67,11 @@ export function loadChannels() {
             return {};
         }
     } catch (error) {
-        console.error("Erreur dans loadChannels:", error);
+        console.error('Erreur lors du chargement des canaux depuis channels.json', error);
         return {};
     }
 }
 
-function saveChannels(channels) {
-    try {
-        fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2));
-    } catch (error) {
-        console.error('Erreur lors de la sauvegarde des canaux dans channels.json', error);
-    }
+export function channelIntegration(interaction, channels) {
+    setChannel(interaction, channels);
 }
