@@ -4,12 +4,19 @@ import { loadChannels, channelIntegration } from './commands/setchannel.js';
 import cron from 'node-cron';
 import dotenv from 'dotenv';
 import { fetchMenu } from './fetchMenu.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-dotenv.config();
-
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
+
 
 client.once(Events.ClientReady, async () => {
     console.log(`Connecté en tant que ${client.user.tag}`);
@@ -30,6 +37,7 @@ client.once(Events.ClientReady, async () => {
     } catch (error) {
         console.error('Erreur lors de la synchronisation des commandes :', error);
     }
+
 
     cron.schedule('0 10 * * *', () => {
         sendDailyMenu();
@@ -54,7 +62,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
 async function sendDailyMenu() {
     const channels = loadChannels();
-    const date = new Date().toLocaleDateString();
     const menu = await fetchMenu();
 
     for (const guildId in channels) {
