@@ -43,7 +43,6 @@ client.once(Events.ClientReady, async () => {
         sendDailyMenu();
     });
 
-    sendDailyMenu();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -62,13 +61,28 @@ client.on(Events.InteractionCreate, async interaction => {
 
 async function sendDailyMenu() {
     const channels = loadChannels();
-    const menu = await fetchMenu();
+    const date = new Date().toLocaleDateString();
+    const menus = loadMenus();
+    const menu = null;
+
+    if (menus[date]) {
+        console.log('Menu déjà enregistré pour aujourd\'hui.');
+        menu = menus[date];
+    } else {
+        console.log('Aucun menu trouvé pour aujourd\'hui, récupération...');
+        const menu = await fetchMenu();
+        saveMenu(date, menu);
+    }
 
     for (const guildId in channels) {
         const channelId = channels[guildId];
         const channel = await client.channels.fetch(channelId);
         if (channel) {
-            sendDailyMenu(menu, channel);
+            if (menu) {
+                await channel.send({ content: `Menu du jour :`, files: [menu] });
+            } else {
+                console.error('Aucun menu trouvé.');
+            }
         } else {
             console.error(`Erreur : le canal ${channelId} pour la guilde ${guildId} est introuvable.`);
         }
