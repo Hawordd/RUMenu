@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { fetchMenu } from '../fetchMenu.js';
+import { fetchMenu } from '../utils/fetchMenu.js';
 import { EmbedBuilder } from 'discord.js';
 
 const __filename = fileURLToPath(import.meta.url);

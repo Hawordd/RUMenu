@@ -3,7 +3,7 @@ import { sendMenu } from './commands/menu.js';
 import { loadChannels, channelIntegration } from './commands/setchannel.js';
 import cron from 'node-cron';
 import dotenv from 'dotenv';
-import { fetchMenu } from './fetchMenu.js';
+import { fetchMenu } from './utils/fetchMenu.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
