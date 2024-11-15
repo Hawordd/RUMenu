@@ -39,13 +39,7 @@ export async function sendDailyMenu(menu, channel) {
 }
 
 async function sendMenuToChannel(menu, interaction = null) {
-    const embed = new EmbedBuilder()
-        .setTitle(`Menu du RU Aubépin du ${new Date().toLocaleDateString()}`)
-        .setDescription(menu)
-        .setColor(0x00ff00)
-        .setFooter({ text: 'Source : Crous Nantes' })
-        .setImage('https://cellar-c2.services.clever-cloud.com/ma-cantine-egalim-prod/media/0319f531-f193-4eff-b194-2217e6099e2d.jpeg')
-        .setTimestamp();
+    const embed = createMenuEmbed(menu);
 
     if (interaction) {
         try {
@@ -59,11 +53,11 @@ async function sendMenuToChannel(menu, interaction = null) {
             }
         }
     } else {
-        console.log("Aucune interaction fournie. Le menu ne sera pas envoyé.");
+        console.error('Aucune interaction fournie. Le menu ne sera pas envoyé.');
     }
 }
 
-function saveMenu(date, menu) {
+export function saveMenu(date, menu) {
     try {
         const menus = loadMenus();
         menus[date] = menu;
@@ -80,7 +74,7 @@ function saveMenu(date, menu) {
     }
 }
 
-function loadMenus() {
+export function loadMenus() {
     if (fs.existsSync(MENU_FILE)) {
         const fileContent = fs.readFileSync(MENU_FILE, 'utf-8');
         if (fileContent.trim() === '') {
@@ -95,4 +89,14 @@ function loadMenus() {
     } else {
         return {};
     }
+}
+
+export function createMenuEmbed(menu) {
+    return new EmbedBuilder()
+        .setTitle(`Menu du RU Aubépin du ${new Date().toLocaleDateString()}`)
+        .setDescription(menu)
+        .setColor(0x00ff00)
+        .setFooter({ text: 'Source : Crous Nantes' })
+        .setImage('https://cellar-c2.services.clever-cloud.com/ma-cantine-egalim-prod/media/0319f531-f193-4eff-b194-2217e6099e2d.jpeg')
+        .setTimestamp();
 }
