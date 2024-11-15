@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { fetchMenu } from './utils/fetchMenu.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { loadMenus, saveMenu, createMenuEmbed } from './commands/menu.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,8 +39,8 @@ client.once(Events.ClientReady, async () => {
         console.error('Erreur lors de la synchronisation des commandes :', error);
     }
 
-
-    cron.schedule('0 10 * * *', () => {
+    cron.schedule('0 11 * * *', () => {
+        console.log("Envoi du menu quotidien à " + new Date());
         sendDailyMenu();
     });
 
@@ -63,23 +64,25 @@ async function sendDailyMenu() {
     const channels = loadChannels();
     const date = new Date().toLocaleDateString();
     const menus = loadMenus();
-    const menu = null;
+    let menu = null;
 
     if (menus[date]) {
         console.log('Menu déjà enregistré pour aujourd\'hui.');
         menu = menus[date];
     } else {
         console.log('Aucun menu trouvé pour aujourd\'hui, récupération...');
-        const menu = await fetchMenu();
+        menu = await fetchMenu();
         saveMenu(date, menu);
     }
+
+    const embed = createMenuEmbed(menu);
 
     for (const guildId in channels) {
         const channelId = channels[guildId];
         const channel = await client.channels.fetch(channelId);
         if (channel) {
             if (menu) {
-                await channel.send({ content: `Menu du jour :`, files: [menu] });
+                await channel.send({ embeds: [embed] });
             } else {
                 console.error('Aucun menu trouvé.');
             }
