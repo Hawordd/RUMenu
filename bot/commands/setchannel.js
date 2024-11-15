@@ -1,23 +1,24 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { PermissionsBitField } from 'discord.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const CHANNELS_FILE = path.resolve(__dirname, '../files/channels.json');
 
-export function setChannel(interaction, channels) {
+export async function setChannel(interaction, channels) {
     try {
         if (!interaction.member || !interaction.member.permissions) {
             console.error("Les permissions du membre ne sont pas disponibles.");
-            interaction.reply({ content: "Erreur interne : permissions non disponibles.", ephemeral: true });
+            await interaction.reply({ content: "Erreur interne : permissions non disponibles.", ephemeral: true });
             return;
         }
-        if (interaction.member.permissions.has("Administrator")) {
+        if (interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             const channel = interaction.options.getChannel('channel');
             if (!channel) {
-                interaction.reply({ content: "Veuillez spécifier un canal valide.", ephemeral: true });
+                await interaction.reply({ content: "Veuillez spécifier un canal valide.", ephemeral: true });
                 return;
             }
 
@@ -26,17 +27,17 @@ export function setChannel(interaction, channels) {
 
             saveChannels(channels);
 
-            interaction.reply(`Le canal pour l'envoi du menu a été défini sur : ${channel.toString()}`);
+            await interaction.reply(`Le canal pour l'envoi du menu a été défini sur : ${channel.toString()}`);
             console.log(`Canal défini pour ${interaction.guild.name} : ${channel.id}`);
         } else {
-            interaction.reply({ content: "Vous n'avez pas la permission de définir le canal.", ephemeral: true });
+            await interaction.reply({ content: "Vous n'avez pas la permission de définir le canal.", ephemeral: true });
         }
     } catch (error) {
         console.error("Erreur dans setChannel:", error);
     }
 }
 
-function saveChannels(channels) {
+export function saveChannels(channels) {
     try {
         const dir = path.dirname(CHANNELS_FILE);
         if (!fs.existsSync(dir)) {
@@ -72,6 +73,6 @@ export function loadChannels() {
     }
 }
 
-export function channelIntegration(interaction, channels) {
+export async function channelIntegration(interaction, channels) {
     setChannel(interaction, channels);
 }
