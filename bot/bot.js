@@ -24,7 +24,7 @@ client.once(Events.ClientReady, async () => {
         await client.application.commands.set([
             {
                 name: 'setchannel',
-                description: 'EN DEVELOPPEMENT - Définit le canal pour envoyer le menu quotidien',
+                description: "Définit le canal pour l'envoi quotidien du menu",
                 options: [{ name: 'channel', type: 7, description: 'Le canal à définir', required: true }]
             },
             {
