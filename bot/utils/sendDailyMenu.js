@@ -1,5 +1,6 @@
 import { fetchMenu } from './fetchMenu.js';
 import { loadMenus, saveMenu, createMenuEmbed } from '../commands/menu.js';
+import { loadChannels } from '../commands/setchannel.js';
 
 export async function sendDailyMenu() {
     const channels = loadChannels();
