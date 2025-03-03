@@ -36,7 +36,18 @@ This Discord bot allows you to send menu of Aubepin University Restaurant in spe
 
 Here is the list of existing commands for the bot : 
 
-    Comming soon
+1. **/setchannel**
+    - **Description:** Sets the channel for daily menu posting.
+    - **Usage:** `/setchannel channel:#channel-name`
+    - **Example:** `/setchannel channel:#general`
+
+2. **/menu**
+    - **Description:** Displays manually the menu of the day from RU Aubépin.
+    - **Usage:** `/menu`
+
+3. **/stopmenu**
+    - **Description:** Stops the daily menu posting.
+    - **Usage:** `/stopmenu`
 
 ## Contributing
 
