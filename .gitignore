@@ -3,6 +3,7 @@ media/
 bot/files/
 ecosystem.config.cjs
 bot/.clinic
+node_modules/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
