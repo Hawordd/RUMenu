@@ -2,7 +2,7 @@ import { fetchMenu } from './fetchMenu.js';
 import { loadMenus, saveMenu, createMenuEmbed } from '../commands/menu.js';
 import { loadChannels } from '../commands/setchannel.js';
 
-export async function sendDailyMenu() {
+export async function sendDailyMenu(client) {
     const channels = loadChannels();
     const date = new Date().toLocaleDateString();
     const menus = loadMenus();

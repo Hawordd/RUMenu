@@ -43,7 +43,7 @@ client.once(Events.ClientReady, async () => {
 
     cron.schedule('0 11 * * *', () => {
         console.log("Envoi du menu quotidien à " + new Date());
-        sendDailyMenu();
+        sendDailyMenu(client);
     });
 
 });
