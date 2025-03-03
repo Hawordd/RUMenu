@@ -42,8 +42,12 @@ client.once(Events.ClientReady, async () => {
     }
 
     cron.schedule('0 11 * * *', () => {
-        console.log("Envoi du menu quotidien à " + new Date());
-        sendDailyMenu(client);
+        try{
+            sendDailyMenu(client);
+            console.log("Envoi du menu quotidien à " + new Date());
+        } catch (error) {
+            console.error('Erreur lors de l\'envoi du menu quotidien :', error);
+        }
     });
 
 });
