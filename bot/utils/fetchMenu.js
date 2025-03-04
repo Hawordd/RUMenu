@@ -13,11 +13,21 @@ export async function fetchMenu() {
             const menuSections = content('.menu');
             let allMenus = {};
 
-            if (menuSection.length) {
-                const menuText = menuSection.html().trim();
+            menuSections.each((index, element) => {
+                const dateElement = content(element).find('time.menu_date_title');
+                const dateText = dateElement.text().trim();
+                const date = extractDate(dateText);
+
+                const menuText = content(element).html().trim();
                 const formattedMenu = formatMenu(menuText);
 
-                return formattedMenu;
+                if (date) {
+                    allMenus[date] = formattedMenu;
+                }
+            });
+
+            if (Object.keys(allMenus).length) {
+                return allMenus;
             } else {
                 return 'Le menu n\'est pas disponible pour le moment.';
             }
