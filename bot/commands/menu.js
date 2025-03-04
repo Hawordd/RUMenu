@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const MENU_FILE = path.resolve(__dirname, '../files/menu.json');
 
 export async function sendMenu(interaction = null) {
-    const date = new Date().toLocaleDateString();
+    const date = new Date().toISOString().split('T')[0];
     const menus = loadMenus();
 
     if (menus[date]) {
