@@ -40,6 +40,33 @@ export async function fetchMenu() {
     }
 }
 
+function extractDate(dateText) {
+    const regex = /Menu du (\w+) (\d+) (\w+) (\d+)/;
+    const match = dateText.match(regex);
+
+    if (match) {
+        const [_, dayOfWeek, day, month, year] = match;
+        const months = {
+            janvier: '01',
+            février: '02',
+            mars: '03',
+            avril: '04',
+            mai: '05',
+            juin: '06',
+            juillet: '07',
+            août: '08',
+            septembre: '09',
+            octobre: '10',
+            novembre: '11',
+            décembre: '12'
+        };
+
+        const monthNumber = months[month.toLowerCase()];
+        return `${year}-${monthNumber}-${day.padStart(2, '0')}`;
+    }
+    return null;
+}
+
 export function formatMenu(htmlContent) {
     const $ = cheerio.load(htmlContent);
 
