@@ -88,6 +88,23 @@ export function saveMenu(date, menu) {
     }
 }
 
+export function saveMenus(allMenus) {
+    try {
+        const menus = loadMenus();
+        Object.assign(menus, allMenus);
+
+        const dir = path.dirname(MENU_FILE);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        fs.writeFileSync(MENU_FILE, JSON.stringify(menus, null, 2));
+        console.log('Menus sauvegardés avec succès.');
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde des menus dans menu.json', error);
+    }
+}
+
 export function loadMenus() {
     if (fs.existsSync(MENU_FILE)) {
         const fileContent = fs.readFileSync(MENU_FILE, 'utf-8');
