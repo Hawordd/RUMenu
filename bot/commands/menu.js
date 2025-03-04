@@ -18,9 +18,23 @@ export async function sendMenu(interaction = null) {
         sendMenuToChannel(menus[date], interaction);
     } else {
         console.log('Aucun menu trouvé pour aujourd\'hui, récupération...');
-        const menu = await fetchMenu();
-        saveMenu(date, menu);
-        sendMenuToChannel(menu, interaction);
+        const allMenus = await fetchMenu();
+        if (typeof allMenus === 'string') {
+            console.error(allMenus);
+            if (interaction) {
+                await interaction.reply('Le menu n\'est pas disponible pour le moment.');
+            }
+            return;
+        }
+        saveMenus(allMenus);
+        if (allMenus[date]) {
+            sendMenuToChannel(allMenus[date], interaction);
+        } else {
+            console.error('Aucun menu trouvé pour aujourd\'hui après récupération.');
+            if (interaction) {
+                await interaction.reply('Aucun menu trouvé pour aujourd\'hui après récupération.');
+            }
+        }
     }
 }
 
