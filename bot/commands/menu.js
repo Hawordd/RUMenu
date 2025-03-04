@@ -25,7 +25,7 @@ export async function sendMenu(interaction = null) {
 }
 
 export async function sendDailyMenu(menu, channel) {
-    const date = new Date().toLocaleDateString();
+    const date = new Date().toISOString().split('T')[0];
     const menus = loadMenus();
 
     if (menus[date]) {
