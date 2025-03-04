@@ -8,9 +8,10 @@ export async function fetchMenu() {
 
         if (response.ok) {
             const body = await response.text();
-            const $ = cheerio.load(body);
+            const content = cheerio.load(body);
 
-            const menuSection = $('ul.meal_foodies');
+            const menuSections = content('.menu');
+            let allMenus = {};
 
             if (menuSection.length) {
                 const menuText = menuSection.html().trim();
