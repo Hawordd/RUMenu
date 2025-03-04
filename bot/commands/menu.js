@@ -93,7 +93,7 @@ export function loadMenus() {
 
 export function createMenuEmbed(menu) {
     return new EmbedBuilder()
-        .setTitle(`Menu du RU Aubépin du ${new Date().toLocaleDateString()}`)
+        .setTitle(`Menu du RU Aubépin du ${new Date().toLocaleDateString('fr-FR')}`)
         .setDescription(menu)
         .setColor(0x00ff00)
         .setFooter({ text: 'Source : Crous Nantes' })
